@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { signIn, signOut } from './../actions';
 
 class GoogleAuth extends React.Component {
-  state = { isSignedIn: null }
+  // state = { isSignedIn: null }
   componentDidMount(){
     // load additional library and pass a callback function as second arg that is called after this addtional module is loaded up
     window.gapi.load('client:auth2', () => {
@@ -14,7 +14,8 @@ class GoogleAuth extends React.Component {
         scope: 'email'
       }).then(() => {
         this.auth = window.gapi.auth2.getAuthInstance();
-        this.setState({ isSignedIn: this.auth.isSignedIn.get() })
+        // this.setState({ isSignedIn: this.auth.isSignedIn.get() })
+        this.onAuthChange(this.auth.isSignedIn.get());
         this.auth.isSignedIn.listen(this.onAuthChange);
       })
     })
@@ -23,7 +24,7 @@ class GoogleAuth extends React.Component {
   onAuthChange = (isSignedIn) => {
     // this.setState({ isSignedIn: this.auth.isSignedIn.get() });
     if(isSignedIn){
-      this.props.signIn();
+      this.props.signIn(this.auth.currentUser.get().getId());
     } else {
       this.props.signOut();
     }
@@ -35,9 +36,11 @@ class GoogleAuth extends React.Component {
     this.auth.signOut();
   }
   renderAuthbutton(){
-    if(this.state.isSignedIn === null){
+    // if(this.state.isSignedIn === null){
+    if(this.props.isSignedIn === null){
       return <div>I dont know if we are figned in</div>
-    } else if(this.state.isSignedIn){
+    // } else if(this.state.isSignedIn){
+    } else if(this.props.isSignedIn){
       return (
         <button onClick={this.onSignOutClick} className="ui red google button">
           <i className="google icon"></i>
@@ -63,7 +66,12 @@ class GoogleAuth extends React.Component {
   }
 }
 
-export default connect(null, { signIn, signOut })(GoogleAuth);
+const mapStateToProps = state => {
+  return { isSignedIn: state.auth.isSignedIn }
+}
+
+// export default connect(null, { signIn, signOut })(GoogleAuth);
+export default connect(mapStateToProps, { signIn, signOut })(GoogleAuth);
 
 // Auth Component
 // - Get a reference to the 'auth' object after it is initialized
